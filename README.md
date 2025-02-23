@@ -1,5 +1,6 @@
 # Sign Language MNIST Classification Using CNN
-![Uploading american_sign_language.PNG…]()
+
+![american_sign_language](https://github.com/user-attachments/assets/975aa9ec-920f-4041-959a-04ad329122b6)
 
 ## Overview
 This project focuses on building a Convolutional Neural Network (CNN) to classify American Sign Language (ASL) hand gestures from the Sign Language MNIST dataset. The dataset contains grayscale images of hand gestures representing the letters A-Z (excluding J and Z). The goal is to create a model that can accurately recognize and classify these gestures, which can be used in applications like real-time sign language translation, accessibility tools, and educational software.
