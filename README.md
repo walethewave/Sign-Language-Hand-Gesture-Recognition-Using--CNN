@@ -143,7 +143,4 @@ This project demonstrates the power of CNNs for image classification tasks and h
    ```
 4. Follow the instructions in the notebook to train and evaluate the model.
 
----
 
-For any questions or further assistance, feel free to reach out! 😊
-```
