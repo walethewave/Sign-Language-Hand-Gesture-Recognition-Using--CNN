@@ -61,3 +61,89 @@ model = models.Sequential([
     layers.Dense(128, activation='relu'),
     layers.Dense(25, activation='softmax')  # 25 classes (0-24)
 ])
+```
+
+## Training and Evaluation
+- **Compiling the Model**: The model was compiled with the Adam optimizer and sparse categorical crossentropy loss.
+- **Training the Model**: The model was trained for 10 epochs.
+- **Evaluating the Model**: The model was evaluated on the validation set.
+
+```python
+model.compile(optimizer='adam',
+              loss='sparse_categorical_crossentropy',
+              metrics=['accuracy'])
+
+history = model.fit(X_train, y_train,
+                    validation_data=(X_val, y_val),
+                    epochs=10,
+                    batch_size=32)
+
+val_loss, val_accuracy = model.evaluate(X_val, y_val)
+print(f"Validation Loss: {val_loss}")
+print(f"Validation Accuracy: {val_accuracy}")
+```
+
+## Handling Overfitting
+- **Adding Dropout Layers**: Added dropout layers to reduce overfitting.
+- **Using Data Augmentation**: Applied data augmentation to increase dataset diversity.
+- **Combining Data Augmentation with Early Stopping**: Added early stopping to prevent overfitting.
+
+```python
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.callbacks import EarlyStopping
+
+datagen = ImageDataGenerator(
+    rotation_range=10,  # Randomly rotate images by 10 degrees
+    width_shift_range=0.1,  # Randomly shift images horizontally by 10%
+    height_shift_range=0.1,  # Randomly shift images vertically by 10%
+    zoom_range=0.1  # Randomly zoom images by 10%
+)
+
+early_stopping = EarlyStopping(
+    monitor='val_loss',  # Monitor validation loss
+    patience=3,  # Stop after 3 epochs without improvement
+    restore_best_weights=True  # Restore the best model weights
+)
+
+history = model.fit(
+    datagen.flow(X_train, y_train, batch_size=32),
+    validation_data=(X_val, y_val),
+    epochs=50,  # Increase the number of epochs
+    callbacks=[early_stopping]  # Add early stopping
+)
+```
+
+## Results
+- **Test Accuracy**: 99.75%
+- **Test Loss**: 0.0134
+
+The model achieved excellent performance on the test set, indicating that it generalizes well to unseen data.
+
+## Conclusion
+This project demonstrates the power of CNNs for image classification tasks and highlights the importance of techniques like data augmentation and dropout in reducing overfitting. The model can be used in various applications, such as real-time sign language translation, accessibility tools, and educational software.
+
+## Next Steps
+- Deploy the model in a real-world application (e.g., a web or mobile app).
+- Fine-tune the model further by experimenting with different architectures or hyperparameters.
+- Collect more data to improve the model's robustness and generalization.
+
+## How to Run the Code
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/sign-language-mnist.git
+   cd sign-language-mnist
+   ```
+2. Install the required dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+3. Run the Jupyter notebook:
+   ```bash
+   jupyter notebook sign_language_mnist.ipynb
+   ```
+4. Follow the instructions in the notebook to train and evaluate the model.
+
+---
+
+For any questions or further assistance, feel free to reach out! 😊
+```
