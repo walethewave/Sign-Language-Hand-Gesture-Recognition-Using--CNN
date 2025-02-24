@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time Sign Language Recognition</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 50px;
+        }
+        h1 {
+            color: #333;
+        }
+        video {
+            border: 2px solid #333;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Real-Time Sign Language Recognition 🤟</h1>
+    <p>Show your hand gesture, and the model will predict the corresponding letter!</p>
+    <img src="{{ url_for('video_feed') }}" width="640" height="480">
+</body>
+</html>
