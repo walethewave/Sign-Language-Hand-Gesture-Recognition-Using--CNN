@@ -1,7 +1,8 @@
+from flask import Flask, request, jsonify
 import cv2
 import numpy as np
 import tensorflow as tf
-from flask import Flask, render_template, Response
+import base64
 
 app = Flask(__name__)
 
@@ -23,14 +24,15 @@ def preprocess_frame(frame):
     reshaped = normalized.reshape(1, 28, 28, 1)
     return reshaped
 
-# Function to generate video frames with predictions
-def generate_frames():
-    # Open the webcam
-    cap = cv2.VideoCapture(0)
-    while True:
-        ret, frame = cap.read()
-        if not ret:
-            break
+@app.route('/predict', methods=['POST'])
+def predict():
+    try:
+        # Get the base64-encoded image from the request
+        data = request.json
+        image_data = data['image'].split(',')[1]  # Remove the data URL prefix
+        image_bytes = base64.b64decode(image_data)
+        image_array = np.frombuffer(image_bytes, dtype=np.uint8)
+        frame = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
 
         # Preprocess the frame
         processed_frame = preprocess_frame(frame)
@@ -40,31 +42,13 @@ def generate_frames():
         predicted_class = np.argmax(prediction)
         predicted_letter = class_labels[predicted_class]
 
-        # Display the predicted letter on the frame
-        cv2.putText(frame, f"Predicted: {predicted_letter}", (10, 50),
-                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+        # Return the prediction
+        return jsonify({"prediction": predicted_letter})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
-        # Convert the frame to JPEG format
-        ret, buffer = cv2.imencode('.jpg', frame)
-        frame = buffer.tobytes()
-
-        # Yield the frame for the video stream
-        yield (b'--frame\r\n'
-               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
-
-    # Release the webcam
-    cap.release()
-
-# Route for the video feed
-@app.route('/video_feed')
-def video_feed():
-    return Response(generate_frames(),
-                    mimetype='multipart/x-mixed-replace; boundary=frame')
-
-# Route for the main page
-@app.route('/')
-def index():
-    return render_template('index.html')
+# Vercel requires the app to be wrapped in a WSGI callable
+wsgi_app = app.wsgi_app
 
 if __name__ == '__main__':
     app.run(debug=True)
