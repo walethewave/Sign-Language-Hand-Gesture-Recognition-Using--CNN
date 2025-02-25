@@ -1,10 +1,9 @@
-from flask import Flask, request, jsonify
 import cv2
 import numpy as np
 import tensorflow as tf
-import base64
+from flask import Flask, render_template, Response
 
-app = Flask(__name__)
+app = Flask(_name_)
 
 # Load the trained model
 model = tf.keras.models.load_model('sign_language_cnn.h5')
@@ -24,15 +23,14 @@ def preprocess_frame(frame):
     reshaped = normalized.reshape(1, 28, 28, 1)
     return reshaped
 
-@app.route('/predict', methods=['POST'])
-def predict():
-    try:
-        # Get the base64-encoded image from the request
-        data = request.json
-        image_data = data['image'].split(',')[1]  # Remove the data URL prefix
-        image_bytes = base64.b64decode(image_data)
-        image_array = np.frombuffer(image_bytes, dtype=np.uint8)
-        frame = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
+# Function to generate video frames with predictions
+def generate_frames():
+    # Open the webcam
+    cap = cv2.VideoCapture(0)
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            break
 
         # Preprocess the frame
         processed_frame = preprocess_frame(frame)
@@ -42,13 +40,31 @@ def predict():
         predicted_class = np.argmax(prediction)
         predicted_letter = class_labels[predicted_class]
 
-        # Return the prediction
-        return jsonify({"prediction": predicted_letter})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        # Display the predicted letter on the frame
+        cv2.putText(frame, f"Predicted: {predicted_letter}", (10, 50),
+                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 
-# Vercel requires the app to be wrapped in a WSGI callable
-wsgi_app = app.wsgi_app
+        # Convert the frame to JPEG format
+        ret, buffer = cv2.imencode('.jpg', frame)
+        frame = buffer.tobytes()
 
-if __name__ == '__main__':
+        # Yield the frame for the video stream
+        yield (b'--frame\r\n'
+               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+
+    # Release the webcam
+    cap.release()
+
+# Route for the video feed
+@app.route('/video_feed')
+def video_feed():
+    return Response(generate_frames(),
+                    mimetype='multipart/x-mixed-replace; boundary=frame')
+
+# Route for the main page
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+if _name_ == '_main_':
     app.run(debug=True)
